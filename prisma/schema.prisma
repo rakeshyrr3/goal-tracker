@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  role          String    @default("USER") // ADMIN or USER
+  plan          String    @default("FREE") // FREE, MONTHLY, QUARTERLY, YEARLY
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  goals         Goal[]
+  expenses      Expense[]
+}
+
+model Goal {
+  id            String    @id @default(cuid())
+  title         String
+  description   String?
+  type          String    // DAILY, WEEKLY, MONTHLY, etc.
+  startDate     DateTime
+  targetDate    DateTime
+  status        String    @default("IN_PROGRESS") // COMPLETED, IN_PROGRESS, FAILED
+  percentage    Int       @default(0)
+  notes         String?
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  createdAt     DateTime  @default(now())
+}
+
+model Expense {
+  id            String    @id @default(cuid())
+  amount        Float
+  category      String    // BUSINESS, TOOLS, ADS, PERSONAL, etc.
+  description   String?
+  date          DateTime  @default(now())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+}
