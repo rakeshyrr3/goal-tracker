@@ -1,322 +1,207 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { Target, ChevronRight, LogIn, UserPlus } from "lucide-react";
 import Link from "next/link";
-import {
-    ArrowRight,
-    Play,
-    Star,
-    Shield,
-    Smartphone,
-    TrendingUp,
-    CheckCircle,
-    PlayCircle,
-    ChevronRight,
-    Target,
-    BarChart3,
-    ArrowUpRight,
-    ArrowDownRight,
-    Check,
-    Zap,
-    X
-} from "lucide-react";
-import { useState } from "react";
 
-export default function LandingPage() {
-    const [isDemoModalOpen, setIsDemoModalOpen] = useState(false);
+export default function RootPage() {
+    const [status, setStatus] = useState<'splash' | 'select'>('splash');
+    const router = useRouter();
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setStatus('select');
+        }, 2500);
+        return () => clearTimeout(timer);
+    }, []);
+
     return (
         <div style={{
             minHeight: '100vh',
-            background: 'linear-gradient(135deg, #0a0a0d 0%, #1a0a2e 50%, #0a0a0d 100%)',
-            position: 'relative',
-            overflow: 'hidden'
+            backgroundColor: '#000',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            position: 'relative'
         }}>
-            {/* Animated Background Blobs */}
-            <div style={{
-                position: 'absolute',
-                top: '10%',
-                right: '10%',
-                width: '400px',
-                height: '400px',
-                background: 'radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%)',
-                borderRadius: '50%',
-                filter: 'blur(60px)',
-                animation: 'float 8s ease-in-out infinite'
-            }} />
-            <div style={{
-                position: 'absolute',
-                bottom: '10%',
-                left: '10%',
-                width: '300px',
-                height: '300px',
-                background: 'radial-gradient(circle, rgba(217, 70, 239, 0.15) 0%, transparent 70%)',
-                borderRadius: '50%',
-                filter: 'blur(60px)',
-                animation: 'float 6s ease-in-out infinite reverse'
-            }} />
-
-            {/* Header */}
-            <header style={{
-                padding: '20px 5%',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                position: 'relative',
-                zIndex: 10
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '12px',
-                        background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}>
-                        <Target size={24} color="white" />
-                    </div>
-                    <span style={{ fontSize: '1.5rem', fontWeight: 800 }}>Goal Tracker</span>
-                </div>
-                <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-                    <Link href="/auth/login" style={{
-                        color: 'var(--text-secondary)',
-                        fontSize: '0.925rem',
-                        fontWeight: 600,
-                        textDecoration: 'none',
-                        transition: 'color 0.2s'
-                    }} className="hover:text-white">
-                        Login
-                    </Link>
-                    <Link href="/dashboard" className="btn-primary" style={{ fontSize: '0.875rem', padding: '10px 24px' }}>
-                        Get Started
-                    </Link>
-                </div>
-            </header>
-
-            {/* Hero Section */}
-            <main style={{
-                maxWidth: '1200px',
-                margin: '0 auto',
-                padding: '0 5% 80px', // Adjusted padding for main
-                position: 'relative',
-                zIndex: 10
-            }}>
-                <section style={{
-                    padding: '120px 24px 80px',
-                    textAlign: 'center',
-                    maxWidth: '900px',
-                    margin: '0 auto',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center'
-                }}>
-                    <div style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        padding: '8px 16px',
-                        borderRadius: '100px',
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        color: 'var(--accent-primary)',
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        marginBottom: '24px',
-                        border: '1px solid rgba(139, 92, 246, 0.2)'
-                    }}>
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--accent-primary)' }}></span>
-                        Now with 3-Day Free Trial
-                    </div>
-                    <h1 style={{
-                        fontSize: 'clamp(2.5rem, 8vw, 4.5rem)',
-                        fontWeight: 800,
-                        lineHeight: 1.1,
-                        marginBottom: '24px',
-                        letterSpacing: '-0.02em'
-                    }}>
-                        Master Your <span style={{ color: 'var(--accent-primary)' }}>Goals</span> & Finances in One Place
-                    </h1>
-                    <p style={{
-                        fontSize: 'clamp(1.125rem, 3vw, 1.25rem)',
-                        color: 'var(--text-secondary)',
-                        marginBottom: '48px',
-                        lineHeight: 1.6,
-                        maxWidth: '650px'
-                    }}>
-                        The all-in-one productivity suite for entrepreneurs. Track your progress, manage expenses, and stay organized with beautiful themed widgets.
-                    </p>
-                    <div style={{
-                        display: 'flex',
-                        gap: '16px',
-                        width: '100%',
-                        maxWidth: 'fit-content',
-                        flexDirection: 'row'
-                    }} className="hero-buttons">
-                        <Link href="/auth/login" className="btn-primary" style={{ padding: '16px 40px', fontSize: '1.125rem' }}>
-                            Start 3-Day Trial <ChevronRight size={20} />
-                        </Link>
-                        <button
-                            onClick={() => setIsDemoModalOpen(true)}
+            <AnimatePresence mode="wait">
+                {status === 'splash' ? (
+                    <motion.div
+                        key="splash"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 1.2, filter: "blur(10px)" }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        style={{ textAlign: 'center' }}
+                    >
+                        <motion.div
+                            animate={{
+                                rotate: [0, 10, -10, 0],
+                                scale: [1, 1.1, 1]
+                            }}
+                            transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: "easeInOut"
+                            }}
                             style={{
-                                padding: '16px 40px',
-                                fontSize: '1.125rem',
-                                borderRadius: '16px',
-                                backgroundColor: 'rgba(255,255,255,0.05)',
-                                border: '1px solid var(--border-color)',
-                                color: 'white',
-                                fontWeight: 700,
-                                cursor: 'pointer',
+                                width: '120px',
+                                height: '120px',
+                                borderRadius: '32px',
+                                background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '8px'
+                                justifyContent: 'center',
+                                margin: '0 auto 24px',
+                                boxShadow: '0 20px 40px rgba(139, 92, 246, 0.3)'
+                            }}
+                        >
+                            <Target size={64} color="white" />
+                        </motion.div>
+                        <motion.h1
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                            style={{ fontSize: '2.5rem', fontWeight: 900, letterSpacing: '-0.02em' }}
+                        >
+                            Goal Tracker
+                        </motion.h1>
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.8 }}
+                            style={{ color: 'var(--text-secondary)', marginTop: '8px' }}
+                        >
+                            Your Journey Begins Here
+                        </motion.p>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="select"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6 }}
+                        style={{
+                            width: '100%',
+                            maxWidth: '400px',
+                            padding: '40px',
+                            textAlign: 'center'
+                        }}
+                    >
+                        <div style={{ marginBottom: '48px' }}>
+                            <div style={{
+                                width: '64px',
+                                height: '64px',
+                                borderRadius: '20px',
+                                background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                margin: '0 auto 20px'
                             }}>
-                            <Play size={20} /> Watch Demo
-                        </button>
-                    </div>
-                </section>
-
-                {/* Features Grid */}
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                    gap: '24px',
-                    marginBottom: '80px'
-                }}>
-                    <FeatureCard
-                        icon={<Target size={28} />}
-                        title="Smart Goal Tracking"
-                        description="Set daily, weekly, monthly, and yearly goals. Track progress with visual indicators and stay motivated."
-                    />
-                    <FeatureCard
-                        icon={<BarChart3 size={28} />}
-                        title="Expense Management"
-                        description="Monitor spending patterns, categorize expenses, and export detailed reports in CSV format."
-                    />
-                    <FeatureCard
-                        icon={<TrendingUp size={28} />}
-                        title="Advanced Analytics"
-                        description="Beautiful charts and insights that help you understand your productivity trends over time."
-                    />
-                    <FeatureCard
-                        icon={<Zap size={28} />}
-                        title="Real-time Updates"
-                        description="Log daily progress, add notes, and watch your achievements grow with every update."
-                    />
-                </div>
-
-                {/* Social Proof */}
-                <div style={{
-                    textAlign: 'center',
-                    padding: '60px 20px',
-                    background: 'rgba(255,255,255,0.02)',
-                    borderRadius: '24px',
-                    border: '1px solid var(--border-color)'
-                }}>
-                    <h3 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '16px' }}>
-                        Join thousands crushing their goals
-                    </h3>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
-                        Trusted by entrepreneurs, students, and professionals worldwide
-                    </p>
-                    <div style={{ display: 'flex', gap: '32px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <StatItem value="10K+" label="Active Users" />
-                        <StatItem value="50K+" label="Goals Completed" />
-                        <StatItem value="4.9/5" label="User Rating" />
-                    </div>
-                </div>
-            </main>
-
-            {/* Demo Modal */}
-            {isDemoModalOpen && (
-                <div className="modal-overlay" onClick={() => setIsDemoModalOpen(false)}>
-                    <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '800px', width: '90%', padding: '0', overflow: 'hidden' }}>
-                        <div style={{ backgroundColor: '#000', position: 'relative', paddingTop: '56.25%' }}>
-                            <button
-                                onClick={() => setIsDemoModalOpen(false)}
-                                style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 20, color: 'white', background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                            >
-                                <X size={24} />
-                            </button>
-                            <div style={{ position: 'absolute', top: '0', left: '0', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#111' }}>
-                                <div style={{ textAlign: 'center' }}>
-                                    <PlayCircle size={64} color="var(--accent-primary)" style={{ marginBottom: '16px' }} />
-                                    <h3 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Product Demo Video</h3>
-                                    <p style={{ color: 'var(--text-muted)' }}>Experience the power of Goal Tracker</p>
-                                </div>
+                                <Target size={32} color="white" />
                             </div>
+                            <h2 style={{ fontSize: '2rem', fontWeight: 800 }}>Welcome</h2>
+                            <p style={{ color: 'var(--text-secondary)' }}>Choose how you'd like to continue</p>
                         </div>
-                        <div style={{ padding: '32px', textAlign: 'center' }}>
-                            <h4 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '8px' }}>Ready to crush your goals?</h4>
-                            <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>Start your 3-day free trial today. No hidden fees.</p>
-                            <Link href="/auth/login" className="btn-primary" style={{ display: 'inline-flex', justifyContent: 'center' }}>
-                                Get Started Now
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <Link href="/auth/login" style={{ textDecoration: 'none' }}>
+                                <motion.div
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    style={{
+                                        padding: '20px',
+                                        borderRadius: '24px',
+                                        background: 'rgba(255,255,255,0.05)',
+                                        border: '1px solid var(--border-color)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '16px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <div style={{
+                                        width: '48px',
+                                        height: '48px',
+                                        borderRadius: '14px',
+                                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: 'var(--accent-primary)'
+                                    }}>
+                                        <LogIn size={24} />
+                                    </div>
+                                    <div style={{ textAlign: 'left' }}>
+                                        <div style={{ fontWeight: 700, color: 'white' }}>Login</div>
+                                        <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Already have an account?</div>
+                                    </div>
+                                    <ChevronRight size={20} style={{ marginLeft: 'auto', color: 'var(--text-muted)' }} />
+                                </motion.div>
+                            </Link>
+
+                            <Link href="/auth/signup" style={{ textDecoration: 'none' }}>
+                                <motion.div
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    style={{
+                                        padding: '20px',
+                                        borderRadius: '24px',
+                                        background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(217, 70, 239, 0.1))',
+                                        border: '1px solid rgba(139, 92, 246, 0.2)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '16px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <div style={{
+                                        width: '48px',
+                                        height: '48px',
+                                        borderRadius: '14px',
+                                        backgroundColor: 'var(--accent-primary)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: 'white'
+                                    }}>
+                                        <UserPlus size={24} />
+                                    </div>
+                                    <div style={{ textAlign: 'left' }}>
+                                        <div style={{ fontWeight: 700, color: 'white' }}>Sign Up</div>
+                                        <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>New to Goal Tracker?</div>
+                                    </div>
+                                    <ChevronRight size={20} style={{ marginLeft: 'auto', color: 'var(--text-muted)' }} />
+                                </motion.div>
                             </Link>
                         </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Footer */}
-            <footer style={{
-                textAlign: 'center',
-                padding: '40px 5%',
-                borderTop: '1px solid var(--border-color)',
-                color: 'var(--text-muted)',
-                fontSize: '0.875rem'
-            }}>
-                <p>© 2026 Goal Tracker. Built with passion for productivity.</p>
-            </footer>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <style jsx>{`
-                @keyframes float {
-                    0%, 100% { transform: translateY(0px); }
-                    50% { transform: translateY(-20px); }
+                .btn-primary {
+                    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+                    color: white;
+                    border: none;
+                    padding: 16px 32px;
+                    border-radius: 16px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    display: flex;
+                    alignItems: center;
+                    gap: 8px;
+                    transition: all 0.2s;
+                }
+                .btn-primary:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 10px 20px rgba(139, 92, 246, 0.2);
                 }
             `}</style>
-        </div>
-    );
-}
-
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
-    return (
-        <div className="card" style={{
-            padding: '32px',
-            transition: 'transform 0.2s, box-shadow 0.2s',
-            cursor: 'pointer'
-        }}
-            onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-            }}
-            onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-            }}>
-            <div style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '14px',
-                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(217, 70, 239, 0.1))',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '20px',
-                color: 'var(--accent-primary)'
-            }}>
-                {icon}
-            </div>
-            <h4 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '12px' }}>{title}</h4>
-            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, fontSize: '0.9375rem' }}>{description}</p>
-        </div>
-    );
-}
-
-function StatItem({ value, label }: { value: string; label: string }) {
-    return (
-        <div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--accent-primary)', marginBottom: '4px' }}>
-                {value}
-            </div>
-            <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                {label}
-            </div>
         </div>
     );
 }

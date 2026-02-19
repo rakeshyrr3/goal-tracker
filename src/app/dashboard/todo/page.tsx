@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, CheckCircle, Circle, Palette, Layout, Type } from "lucide-react";
+import { Plus, Trash2, CheckCircle, Circle, Palette, Layout, Calendar, Clock } from "lucide-react";
+import confetti from "canvas-confetti";
 
 interface Todo {
     id: string;
@@ -9,14 +10,15 @@ interface Todo {
     completed: boolean;
     theme: string;
     time?: string;
+    date?: string;
 }
 
 const THEMES = [
+    { name: "Rainbow", bg: "linear-gradient(135deg, rgba(255,0,0,0.1), rgba(255,165,0,0.1), rgba(255,255,0,0.1), rgba(0,128,0,0.1), rgba(0,0,255,0.1), rgba(75,0,130,0.1), rgba(238,130,238,0.1))", border: "linear-gradient(135deg, red, orange, yellow, green, blue, indigo, violet)", text: "#fff" },
     { name: "Modern Blue", bg: "rgba(59, 130, 246, 0.1)", border: "#3b82f6", text: "#fff" },
-    { name: "Sticky Yellow", bg: "#fef9c3", border: "#facc15", text: "#854d0e" },
-    { name: "Glass Pastel", bg: "rgba(255, 255, 255, 0.1)", border: "rgba(255, 255, 255, 0.2)", text: "#fff" },
     { name: "Neon Purple", bg: "rgba(168, 85, 247, 0.1)", border: "#a855f7", text: "#fff" },
     { name: "Mint Fresh", bg: "rgba(34, 197, 94, 0.1)", border: "#22c55e", text: "#fff" },
+    { name: "Sunset Gold", bg: "rgba(245, 158, 11, 0.1)", border: "#f59e0b", text: "#fff" },
 ];
 
 export default function TodoPage() {
@@ -33,16 +35,29 @@ export default function TodoPage() {
         localStorage.setItem('user_todos', JSON.stringify(todos));
     }, [todos]);
 
+    const triggerConfetti = () => {
+        const colors = ['#ff0000', '#ffa500', '#ffff00', '#008000', '#0000ff', '#4b0082', '#ee82ee'];
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: colors,
+            shapes: ['square']
+        });
+    };
+
     const addTodo = (e: React.FormEvent) => {
         e.preventDefault();
         if (!inputValue.trim()) return;
 
+        const now = new Date();
         const newTodo: Todo = {
             id: Date.now().toString(),
             text: inputValue,
             completed: false,
             theme: selectedTheme.name,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            date: now.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' })
         };
 
         setTodos([newTodo, ...todos]);
@@ -50,24 +65,31 @@ export default function TodoPage() {
     };
 
     const toggleTodo = (id: string) => {
-        setTodos(todos.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+        setTodos(prev => prev.map(t => {
+            if (t.id === id && !t.completed) {
+                triggerConfetti();
+            }
+            return t.id === id ? { ...t, completed: !t.completed } : t;
+        }));
     };
 
     const deleteTodo = (id: string) => {
-        setTodos(todos.filter(t => t.id !== id));
+        if (confirm("Delete this task?")) {
+            setTodos(todos.filter(t => t.id !== id));
+        }
     };
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', minHeight: '100vh' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                    <h2 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Rich To-Do Widgets</h2>
-                    <p style={{ color: 'var(--text-secondary)' }}>Personalize your tasks with interactive themes.</p>
+                    <h2 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Rainbow To-Do Widgets</h2>
+                    <p style={{ color: 'var(--text-secondary)' }}>Personalize your tasks with vibrant rainbow themes.</p>
                 </div>
             </div>
 
             {/* Theme Selector */}
-            <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }}>
+            <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '8px' }} className="no-scrollbar">
                 {THEMES.map((theme) => (
                     <button
                         key={theme.name}
@@ -75,9 +97,9 @@ export default function TodoPage() {
                         style={{
                             padding: '10px 16px',
                             borderRadius: '12px',
-                            backgroundColor: theme.bg,
-                            border: `2px solid ${selectedTheme.name === theme.name ? theme.border : 'transparent'}`,
-                            color: theme.name.includes("Sticky") ? theme.text : 'white',
+                            background: theme.bg,
+                            border: `2px solid ${selectedTheme.name === theme.name ? 'var(--accent-primary)' : 'transparent'}`,
+                            color: 'white',
                             fontSize: '0.875rem',
                             fontWeight: 600,
                             whiteSpace: 'nowrap',
@@ -85,7 +107,8 @@ export default function TodoPage() {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '8px',
-                            transition: 'all 0.2s'
+                            transition: 'all 0.2s',
+                            boxShadow: selectedTheme.name === theme.name ? '0 0 15px rgba(139, 92, 246, 0.3)' : 'none'
                         }}
                     >
                         <Palette size={16} />
@@ -99,28 +122,33 @@ export default function TodoPage() {
                 <input
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
-                    placeholder="What needs to be done?"
+                    placeholder="Capture your next big goal..."
                     style={{
                         flex: 1,
-                        padding: '16px',
-                        borderRadius: '16px',
+                        padding: '18px',
+                        borderRadius: '20px',
                         backgroundColor: 'var(--card-bg)',
                         border: '1px solid var(--border-color)',
                         color: 'white',
-                        fontSize: '1rem'
+                        fontSize: '1rem',
+                        outline: 'none',
+                        boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
                     }}
                 />
                 <button
                     type="submit"
                     style={{
-                        padding: '0 24px',
-                        borderRadius: '16px',
+                        padding: '0 32px',
+                        borderRadius: '20px',
                         backgroundColor: 'var(--accent-primary)',
                         color: 'white',
                         border: 'none',
                         fontWeight: 700,
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        transition: 'transform 0.2s'
                     }}
+                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
                     <Plus size={24} />
                 </button>
@@ -130,65 +158,82 @@ export default function TodoPage() {
             <div className="todo-grid" style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                gap: '20px'
+                gap: '24px'
             }}>
                 {todos.map((todo) => {
                     const theme = THEMES.find(t => t.name === todo.theme) || THEMES[0];
-                    const isSticky = theme.name.includes("Sticky");
+                    const isRainbow = theme.name === "Rainbow";
 
                     return (
                         <div
                             key={todo.id}
                             style={{
                                 padding: '24px',
-                                borderRadius: '24px',
-                                backgroundColor: theme.bg,
-                                border: isSticky ? 'none' : `1px solid ${theme.border}`,
+                                borderRadius: '28px',
+                                background: theme.bg,
+                                border: isRainbow ? 'none' : `1px solid ${theme.border}`,
+                                borderImage: isRainbow ? theme.border : 'none',
+                                borderImageSlice: isRainbow ? 1 : 'none',
                                 position: 'relative',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                gap: '16px',
+                                gap: '20px',
                                 textDecoration: todo.completed ? 'line-through' : 'none',
-                                opacity: todo.completed ? 0.7 : 1,
-                                boxShadow: isSticky ? '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' : 'none',
-                                transform: isSticky ? 'rotate(-1deg)' : 'none'
+                                opacity: todo.completed ? 0.6 : 1,
+                                boxShadow: '0 10px 30px -10px rgba(0,0,0,0.5)',
+                                transition: 'all 0.3s ease',
+                                transform: todo.completed ? 'scale(0.98)' : 'scale(1)'
                             }}
                         >
+                            {isRainbow && (
+                                <div style={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    borderRadius: '28px',
+                                    padding: '2px',
+                                    background: theme.border,
+                                    WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                                    WebkitMaskComposite: 'xor',
+                                    maskComposite: 'exclude',
+                                    pointerEvents: 'none'
+                                }} />
+                            )}
+
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <button
                                     onClick={() => toggleTodo(todo.id)}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: isSticky ? theme.text : 'white' }}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white' }}
                                 >
-                                    {todo.completed ? <CheckCircle size={24} /> : <Circle size={24} />}
+                                    {todo.completed ? <CheckCircle size={28} color="var(--success)" /> : <Circle size={28} color="var(--text-muted)" />}
                                 </button>
                                 <button
                                     onClick={() => deleteTodo(todo.id)}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: isSticky ? 'rgba(0,0,0,0.3)' : 'var(--text-muted)' }}
+                                    style={{ background: 'rgba(239, 68, 68, 0.1)', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '8px', borderRadius: '12px' }}
                                 >
-                                    <Trash2 size={20} />
+                                    <Trash2 size={18} />
                                 </button>
                             </div>
 
                             <p style={{
-                                fontSize: '1.125rem',
-                                fontWeight: 600,
-                                color: isSticky ? theme.text : 'white',
+                                fontSize: '1.25rem',
+                                fontWeight: 700,
+                                color: 'white',
                                 margin: 0,
-                                flex: 1
+                                flex: 1,
+                                lineHeight: 1.4
                             }}>
                                 {todo.text}
                             </p>
 
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ fontSize: '0.75rem', color: isSticky ? 'rgba(0,0,0,0.4)' : 'var(--text-muted)', fontWeight: 500 }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                    <Calendar size={14} />
+                                    {todo.date || 'Today'}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                    <Clock size={14} />
                                     {todo.time}
-                                </span>
-                                <div style={{
-                                    width: '12px',
-                                    height: '12px',
-                                    borderRadius: '50%',
-                                    backgroundColor: theme.border
-                                }} />
+                                </div>
                             </div>
                         </div>
                     );
@@ -204,10 +249,14 @@ export default function TodoPage() {
                     flex: 1,
                     color: 'var(--text-muted)',
                     gap: '16px',
-                    padding: '48px'
+                    padding: '80px 24px',
+                    textAlign: 'center'
                 }}>
-                    <Layout size={48} strokeWidth={1} />
-                    <p>No tasks yet. Pick a theme and start adding!</p>
+                    <div style={{ width: '80px', height: '80px', borderRadius: '30px', backgroundColor: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
+                        <Layout size={40} strokeWidth={1.5} />
+                    </div>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'white' }}>Empty Canvas</h3>
+                    <p style={{ maxWidth: '300px' }}>Pick a rainbow theme and start capturing your tasks. Your future self will thank you!</p>
                 </div>
             )}
         </div>

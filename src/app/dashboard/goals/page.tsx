@@ -16,6 +16,7 @@ import {
     CheckCircle,
     TrendingUp
 } from "lucide-react";
+import confetti from "canvas-confetti";
 
 const INITIAL_GOALS_DATA = [
     {
@@ -26,7 +27,7 @@ const INITIAL_GOALS_DATA = [
         dueDate: "2024-12-31",
         type: "Yearly",
         status: "Active",
-        logs: ["Initial setup completed", "First 5 sales calls made"]
+        updates: ["Initial setup completed", "First 5 sales calls made"]
     },
     {
         id: "2",
@@ -36,7 +37,7 @@ const INITIAL_GOALS_DATA = [
         dueDate: "2024-11-15",
         type: "Monthly",
         status: "Active",
-        logs: ["Landing page designed", "Drafted announcement post"]
+        updates: ["Landing page designed", "Drafted announcement post"]
     }
 ];
 
@@ -70,9 +71,7 @@ export default function GoalsPage() {
 
     // Save goals to local storage
     useEffect(() => {
-        if (goals.length > 0) {
-            localStorage.setItem('user_goals', JSON.stringify(goals));
-        }
+        localStorage.setItem('user_goals', JSON.stringify(goals));
     }, [goals]);
 
     const selectedGoal = goals.find(g => g.id === selectedGoalId) || null;
@@ -82,6 +81,17 @@ export default function GoalsPage() {
         if (filter === "Completed") return goal.status === "Completed";
         return goal.type === filter;
     });
+
+    const triggerConfetti = () => {
+        const colors = ['#8b5cf6', '#d946ef', '#10b981', '#f59e0b', '#3b82f6'];
+        confetti({
+            particleCount: 150,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: colors,
+            shapes: ['square']
+        });
+    };
 
     const handleSaveGoal = (e: React.FormEvent) => {
         e.preventDefault();
@@ -99,9 +109,10 @@ export default function GoalsPage() {
                 ...formData,
                 progress: 0,
                 status: "Active",
-                logs: ["Goal created " + new Date().toLocaleDateString()]
+                updates: ["Goal created " + new Date().toLocaleDateString()]
             };
             setGoals(prev => [newGoal, ...prev]);
+            triggerConfetti();
         }
 
         setIsCreateModalOpen(false);
@@ -125,11 +136,12 @@ export default function GoalsPage() {
         setGoals(prev => prev.map(g => {
             if (g.id === id) {
                 const nextProgress = Math.min(g.progress + 10, 100);
+                if (nextProgress === 100) triggerConfetti();
                 return {
                     ...g,
                     progress: nextProgress,
                     status: nextProgress === 100 ? "Completed" : g.status,
-                    logs: [`Increased progress to ${nextProgress}%`, ...(g.logs || [])]
+                    updates: [`Increased progress to ${nextProgress}%`, ...(g.updates || [])]
                 };
             }
             return g;
@@ -142,7 +154,7 @@ export default function GoalsPage() {
             if (g.id === id) {
                 return {
                     ...g,
-                    logs: [dailyLog, ...(g.logs || [])]
+                    updates: [dailyLog, ...(g.updates || [])]
                 };
             }
             return g;
@@ -153,7 +165,8 @@ export default function GoalsPage() {
     const handleMarkAsComplete = (id: string) => {
         setGoals(prev => prev.map(g => {
             if (g.id === id) {
-                return { ...g, progress: 100, status: "Completed", logs: ["Goal marked as completed", ...(g.logs || [])] };
+                triggerConfetti();
+                return { ...g, progress: 100, status: "Completed", updates: ["Goal marked as completed", ...(g.updates || [])] };
             }
             return g;
         }));
@@ -184,7 +197,7 @@ export default function GoalsPage() {
                 </button>
             </div>
 
-            <div className="tabs-container">
+            <div className="tabs-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', overflow: 'visible' }}>
                 <TabItem label="All" active={filter === "All"} onClick={() => setFilter("All")} count={goals.filter(g => g.status === "Active").length} />
                 <TabItem label="Daily" active={filter === "Daily"} onClick={() => setFilter("Daily")} count={goals.filter(g => g.type === "Daily" && g.status === "Active").length} />
                 <TabItem label="Weekly" active={filter === "Weekly"} onClick={() => setFilter("Weekly")} count={goals.filter(g => g.type === "Weekly" && g.status === "Active").length} />
@@ -281,106 +294,113 @@ export default function GoalsPage() {
             {/* Goal Detail Modal */}
             {selectedGoal && (
                 <div className="modal-overlay" onClick={() => setSelectedGoalId(null)}>
-                    <div className="modal-content" onClick={e => e.stopPropagation()}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                            <div style={{
-                                padding: '4px 12px',
-                                borderRadius: '20px',
-                                backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                                color: 'var(--accent-primary)',
-                                fontSize: '0.75rem',
-                                fontWeight: 700
-                            }}>
-                                {selectedGoal.type} Goal
-                            </div>
-                            <button onClick={() => setSelectedGoalId(null)} style={{ color: 'var(--text-muted)' }}><X size={24} /></button>
-                        </div>
-
-                        <h3 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '12px' }}>{selectedGoal.title}</h3>
-                        <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '24px' }}>{selectedGoal.desc}</p>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                                    <Clock size={16} /> Due: {selectedGoal.dueDate}
-                                </div>
-                                <div style={{ fontWeight: 700, color: 'var(--accent-primary)' }}>{selectedGoal.progress}%</div>
-                            </div>
-                            <div style={{ height: '12px', width: '100%', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '6px', overflow: 'hidden' }}>
+                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ position: 'sticky', top: 0, backgroundColor: 'var(--card-bg)', zIndex: 10, paddingBottom: '16px', borderBottom: '1px solid var(--border-color)', marginBottom: '24px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                                 <div style={{
-                                    height: '100%',
-                                    width: `${selectedGoal.progress}%`,
-                                    transition: 'width 0.3s ease',
-                                    background: 'linear-gradient(to right, var(--accent-primary), var(--accent-secondary))'
-                                }}></div>
+                                    padding: '4px 12px',
+                                    borderRadius: '20px',
+                                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                                    color: 'var(--accent-primary)',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700
+                                }}>
+                                    {selectedGoal.type} Goal
+                                </div>
+                                <button onClick={() => setSelectedGoalId(null)} style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}><X size={24} /></button>
+                            </div>
+                            <h3 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>{selectedGoal.title}</h3>
+                        </div>
+
+                        <div style={{ flex: 1 }}>
+                            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '24px' }}>{selectedGoal.desc}</p>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+                                        <Clock size={16} /> Due: {selectedGoal.dueDate}
+                                    </div>
+                                    <div style={{ fontWeight: 700, color: 'var(--accent-primary)' }}>{selectedGoal.progress}%</div>
+                                </div>
+                                <div style={{ height: '12px', width: '100%', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '6px', overflow: 'hidden' }}>
+                                    <div style={{
+                                        height: '100%',
+                                        width: `${selectedGoal.progress}%`,
+                                        transition: 'width 0.3s ease',
+                                        background: 'linear-gradient(to right, var(--accent-primary), var(--accent-secondary))'
+                                    }}></div>
+                                </div>
+                            </div>
+
+                            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '24px' }}>
+                                <h4 style={{ fontSize: '0.875rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <AlertCircle size={16} /> Goal Updates / Daily Status
+                                </h4>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
+                                    <input
+                                        value={dailyLog}
+                                        onChange={(e) => setDailyLog(e.target.value)}
+                                        placeholder="What did you do today for this goal?"
+                                        style={{ width: '100%', padding: '12px', backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'white', outline: 'none' }}
+                                    />
+                                    <button
+                                        onClick={() => handleAddDailyLog(selectedGoal.id)}
+                                        className="btn-primary"
+                                        style={{ width: '100%', justifyContent: 'center', padding: '12px' }}
+                                    >Update Status</button>
+                                </div>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
+                                    {selectedGoal.updates && selectedGoal.updates.map((log: string, idx: number) => (
+                                        <div key={idx} style={{ padding: '12px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '8px', fontSize: '0.8125rem', color: 'var(--text-secondary)', border: '1px solid var(--border-color)' }}>
+                                            {log}
+                                        </div>
+                                    ))}
+                                    {(!selectedGoal.updates || selectedGoal.updates.length === 0) && (
+                                        <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '0.8125rem' }}>
+                                            No updates added yet.
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
-                        <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '24px' }}>
-                            <h4 style={{ fontSize: '0.875rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <AlertCircle size={16} /> Daily Status/Progress Log
-                            </h4>
-
-                            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                                <input
-                                    value={dailyLog}
-                                    onChange={(e) => setDailyLog(e.target.value)}
-                                    placeholder="What did you do today for this goal?"
-                                    style={{ flex: 1, fontSize: '0.8125rem' }}
-                                />
-                                <button
-                                    onClick={() => handleAddDailyLog(selectedGoal.id)}
-                                    className="btn-primary"
-                                    style={{ padding: '8px 16px', fontSize: '0.8125rem' }}
-                                >Update Status</button>
-                            </div>
-
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '200px', overflowY: 'auto' }}>
-                                {selectedGoal.logs && selectedGoal.logs.map((log: string, idx: number) => (
-                                    <div key={idx} style={{ padding: '12px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '8px', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>
-                                        {log}
-                                    </div>
-                                ))}
-                                {(!selectedGoal.logs || selectedGoal.logs.length === 0) && (
-                                    <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '0.8125rem' }}>
-                                        No logs added yet.
-                                    </div>
+                        <div style={{ position: 'sticky', bottom: 0, backgroundColor: 'var(--card-bg)', zIndex: 10, paddingTop: '16px', marginTop: 'auto', borderTop: '1px solid var(--border-color)' }}>
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                {selectedGoal.status !== "Completed" && (
+                                    <>
+                                        <button
+                                            onClick={() => handleUpdateProgress(selectedGoal.id)}
+                                            className="btn-primary"
+                                            style={{ flex: 1, justifyContent: 'center' }}
+                                        >
+                                            <TrendingUp size={18} /> Quick +10%
+                                        </button>
+                                        <button
+                                            onClick={() => handleMarkAsComplete(selectedGoal.id)}
+                                            style={{
+                                                flex: 1,
+                                                justifyContent: 'center',
+                                                padding: '12px',
+                                                borderRadius: '10px',
+                                                border: '1px solid var(--border-color)',
+                                                color: 'white',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 600,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '8px',
+                                                cursor: 'pointer',
+                                                backgroundColor: 'rgba(255,255,255,0.02)'
+                                            }}
+                                            className="hover:bg-glass"
+                                        >
+                                            <CheckCircle size={18} /> Mark Completed
+                                        </button>
+                                    </>
                                 )}
                             </div>
-                        </div>
-
-                        <div style={{ marginTop: '32px', display: 'flex', gap: '12px' }}>
-                            {selectedGoal.status !== "Completed" && (
-                                <>
-                                    <button
-                                        onClick={() => handleUpdateProgress(selectedGoal.id)}
-                                        className="btn-primary"
-                                        style={{ flex: 1, justifyContent: 'center' }}
-                                    >
-                                        <TrendingUp size={18} /> Quick +10%
-                                    </button>
-                                    <button
-                                        onClick={() => handleMarkAsComplete(selectedGoal.id)}
-                                        style={{
-                                            flex: 1,
-                                            justifyContent: 'center',
-                                            padding: '12px',
-                                            borderRadius: '10px',
-                                            border: '1px solid var(--border-color)',
-                                            color: 'white',
-                                            fontSize: '0.875rem',
-                                            fontWeight: 600,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '8px',
-                                            cursor: 'pointer'
-                                        }}
-                                        className="hover:bg-glass"
-                                    >
-                                        <CheckCircle size={18} /> Mark Completed
-                                    </button>
-                                </>
-                            )}
                         </div>
                     </div>
                 </div>
@@ -496,8 +516,8 @@ function GoalCard({ goal, onViewDetails, isMenuOpen, onMenuToggle, onEdit, onDel
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--border-color)' }}>
                 <div style={{ display: 'flex', gap: '8px' }}>
-                    <div title="Notes" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <AlertCircle size={14} /> {goal.logs ? goal.logs.length : 0} Logs
+                    <div title="Updates" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <AlertCircle size={14} /> {goal.updates ? goal.updates.length : 0} Updates
                     </div>
                 </div>
                 <button

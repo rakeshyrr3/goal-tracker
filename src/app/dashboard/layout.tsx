@@ -30,6 +30,22 @@ export default function DashboardLayout({
 
     const [profileImage, setProfileImage] = useState<string | null>(null);
 
+    // Persistence for Profile
+    useEffect(() => {
+        const savedName = localStorage.getItem('user_name');
+        const savedBio = localStorage.getItem('user_bio');
+        const savedImg = localStorage.getItem('user_profile_img');
+        if (savedName) setUserName(savedName);
+        if (savedBio) setBio(savedBio);
+        if (savedImg) setProfileImage(savedImg);
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem('user_name', userName);
+        localStorage.setItem('user_bio', bio);
+        if (profileImage) localStorage.setItem('user_profile_img', profileImage);
+    }, [userName, bio, profileImage]);
+
     // Razorpay script injection
     useEffect(() => {
         const script = document.createElement("script");
@@ -57,6 +73,10 @@ export default function DashboardLayout({
             };
             reader.readAsDataURL(file);
         }
+    };
+
+    const handleManageSubscription = () => {
+        alert("You are currently using the Goal Tracker Pro version for free! Enjoy all premium features as our early adopter. Thank you for being with us! \ud83d\ude80");
     };
 
     const navItems = [
@@ -236,7 +256,12 @@ export default function DashboardLayout({
                                         </div>
                                         <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: '12px', backgroundColor: 'var(--accent-primary)', color: 'white', fontWeight: 600 }}>PRO</span>
                                     </div>
-                                    <button style={{ marginTop: '12px', width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', color: 'white', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}>Manage Subscription</button>
+                                    <button
+                                        onClick={handleManageSubscription}
+                                        style={{ marginTop: '12px', width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', color: 'white', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}
+                                    >
+                                        Manage Subscription
+                                    </button>
                                 </div>
 
                                 <button className="btn-primary" onClick={() => setIsProfileModalOpen(false)} style={{ justifyContent: 'center' }}>

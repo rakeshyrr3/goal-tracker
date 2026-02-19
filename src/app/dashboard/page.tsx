@@ -7,9 +7,16 @@ import {
     CreditCard,
     CheckCircle2,
     Clock,
-    AlertCircle,
     ArrowUpRight,
-    ArrowDownRight
+    ArrowDownRight,
+    Search,
+    Filter,
+    Plus,
+    Calendar,
+    ChevronDown,
+    Wallet,
+    DollarSign,
+    AlertCircle
 } from "lucide-react";
 import {
     AreaChart,
@@ -23,6 +30,13 @@ import {
     Bar,
     Cell
 } from "recharts";
+import {
+    startOfDay,
+    endOfDay,
+    startOfMonth,
+    subDays,
+    parseISO
+} from "date-fns";
 
 export default function DashboardPage() {
     const [goals, setGoals] = useState<any[]>([]);
@@ -34,29 +48,40 @@ export default function DashboardPage() {
         if (savedGoals) setGoals(JSON.parse(savedGoals));
         if (savedExpenses) setExpenses(JSON.parse(savedExpenses));
 
-        // Sync event with Manager Portal
+        // Background sync simulation
         const syncWithAdmin = async () => {
             try {
-                await fetch('/api/admin/events', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        event: 'Dashboard Viewed',
-                        user: 'Local User',
-                        status: 'Success'
-                    })
-                });
-            } catch (err) {
+                const res = await fetch('/api/admin/sync');
+                if (res.ok) console.log("Manager portal operational");
+            } catch {
                 console.warn("Manager portal sync offline");
             }
         };
         syncWithAdmin();
     }, []);
 
+    const now = new Date();
+    const today = startOfDay(now);
+    const yesterday = startOfDay(subDays(now, 1));
+    const monthStart = startOfMonth(now);
+
+    const todaySpent = expenses.filter(e => {
+        const d = parseISO(e.date);
+        return d >= today && d <= endOfDay(now);
+    }).reduce((acc, curr) => acc + curr.amount, 0);
+
+    const yesterdaySpent = expenses.filter(e => {
+        const d = parseISO(e.date);
+        return d >= yesterday && d <= endOfDay(yesterday);
+    }).reduce((acc, curr) => acc + curr.amount, 0);
+
+    const monthSpent = expenses.filter(e => {
+        const d = parseISO(e.date);
+        return d >= monthStart && d <= endOfDay(now);
+    }).reduce((acc, curr) => acc + curr.amount, 0);
+
     const totalSpending = expenses.reduce((acc, curr) => acc + curr.amount, 0);
     const activeGoalsCount = goals.length;
-
-    // Simple progress calculation
     const avgProgress = goals.length > 0
         ? Math.round(goals.reduce((acc, curr) => acc + (curr.progress || 0), 0) / goals.length)
         : 0;
@@ -74,36 +99,86 @@ export default function DashboardPage() {
         amount: expenseByCategory[key]
     })).slice(0, 4);
 
+    const handleRestart = () => {
+        if (confirm("Are you sure? This will permanently delete all your goals and expenses to start fresh from today.")) {
+            localStorage.removeItem('user_goals');
+            localStorage.removeItem('user_expenses');
+            localStorage.removeItem('user_todos');
+            setGoals([]);
+            setExpenses([]);
+            window.location.reload();
+        }
+    };
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            {/* Stats Grid */}
-            <div className="stats-grid">
+            {/* Header with Restart */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                    <h2 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Productivity Overview</h2>
+                    <p style={{ color: 'var(--text-secondary)' }}>Welcome back! Here's how you're doing today.</p>
+                </div>
+                <button
+                    onClick={handleRestart}
+                    style={{
+                        padding: '12px 24px',
+                        borderRadius: '16px',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        color: '#ef4444',
+                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'}
+                >
+                    <Clock size={18} /> Restart from Today
+                </button>
+            </div>
+
+            {/* Stats Grid - 5 Cards */}
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                gap: '24px'
+            }}>
+                <StatCard
+                    title="Today's Spend"
+                    value={`₹${todaySpent.toLocaleString()}`}
+                    icon={<Wallet color="var(--accent-primary)" />}
+                    trend="+12% vs avg"
+                    trendUp={todaySpent > (monthSpent / 30)}
+                />
+                <StatCard
+                    title="Yesterday's Spend"
+                    value={`₹${yesterdaySpent.toLocaleString()}`}
+                    icon={<CreditCard color="var(--accent-secondary)" />}
+                    trend="Check logs"
+                    trendUp={false}
+                />
+                <StatCard
+                    title="Month to Date"
+                    value={`₹${monthSpent.toLocaleString()}`}
+                    icon={<DollarSign color="var(--success)" />}
+                    trend="On track"
+                    trendUp={true}
+                />
                 <StatCard
                     title="Active Goals"
                     value={activeGoalsCount.toString()}
-                    icon={<Target color="var(--accent-primary)" />}
-                    trend="+2 this week"
+                    icon={<Target color="var(--warning)" />}
+                    trend={`${activeGoalsCount} live`}
                     trendUp={true}
                 />
                 <StatCard
-                    title="Avg. Progress"
+                    title="Goal Progress"
                     value={`${avgProgress}%`}
-                    icon={<TrendingUp color="var(--accent-secondary)" />}
-                    trend="+5.4%"
-                    trendUp={true}
-                />
-                <StatCard
-                    title="Total Spending"
-                    value={`₹${totalSpending.toLocaleString()}`}
-                    icon={<CreditCard color="var(--warning)" />}
-                    trend="-12% vs last month"
-                    trendUp={true}
-                />
-                <StatCard
-                    title="Performance Score"
-                    value="84"
-                    icon={<CheckCircle2 color="var(--success)" />}
-                    trend="+2 pts"
+                    icon={<TrendingUp color="#d946ef" />}
+                    trend="Improving"
                     trendUp={true}
                 />
             </div>
@@ -121,13 +196,13 @@ export default function DashboardPage() {
                     <div style={{ height: '300px', width: '100%' }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={[
-                                { name: 'Mon', completion: 65 },
-                                { name: 'Tue', completion: 59 },
-                                { name: 'Wed', completion: 80 },
-                                { name: 'Thu', completion: 81 },
-                                { name: 'Fri', completion: 56 },
-                                { name: 'Sat', completion: 55 },
-                                { name: 'Sun', completion: 40 },
+                                { name: 'Mon', completion: activeGoalsCount > 0 ? 65 : 0 },
+                                { name: 'Tue', completion: activeGoalsCount > 0 ? 59 : 0 },
+                                { name: 'Wed', completion: activeGoalsCount > 0 ? 80 : 0 },
+                                { name: 'Thu', completion: activeGoalsCount > 0 ? 81 : 0 },
+                                { name: 'Fri', completion: activeGoalsCount > 0 ? 56 : 0 },
+                                { name: 'Sat', completion: activeGoalsCount > 0 ? 55 : 0 },
+                                { name: 'Sun', completion: activeGoalsCount > 0 ? 40 : 0 },
                             ]}>
                                 <defs>
                                     <linearGradient id="colorCompletion" x1="0" y1="0" x2="0" y2="1">
@@ -195,7 +270,12 @@ export default function DashboardPage() {
             <div className="card">
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
                     <h3 style={{ fontSize: '1.125rem', fontWeight: 600 }}>Active Goals</h3>
-                    <button style={{ color: 'var(--accent-primary)', fontSize: '0.875rem' }}>View All</button>
+                    <button
+                        onClick={() => window.location.href = '/dashboard/goals'}
+                        style={{ color: 'var(--accent-primary)', fontSize: '0.875rem', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                        View All
+                    </button>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {goals.length > 0 ? goals.slice(0, 3).map((goal) => (
@@ -205,6 +285,7 @@ export default function DashboardPage() {
                             progress={goal.progress || 0}
                             dueDate={goal.dueDate}
                             type={goal.type}
+                            onUpdate={() => window.location.href = '/dashboard/goals'}
                         />
                     )) : (
                         <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '20px' }}>No active goals found.</p>
@@ -273,7 +354,7 @@ function InsightCard({ title, message, type }: any) {
     );
 }
 
-function GoalItem({ title, progress, dueDate, type }: any) {
+function GoalItem({ title, progress, dueDate, type, onUpdate }: any) {
     return (
         <div style={{
             display: 'flex',
@@ -317,13 +398,18 @@ function GoalItem({ title, progress, dueDate, type }: any) {
                     </span>
                 </div>
             </div>
-            <button style={{
-                padding: '8px 16px',
-                borderRadius: '8px',
-                backgroundColor: 'rgba(255,255,255,0.05)',
-                fontSize: '0.875rem',
-                color: 'var(--text-primary)'
-            }}>
+            <button
+                onClick={onUpdate}
+                style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(255,255,255,0.05)',
+                    fontSize: '0.875rem',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer',
+                    border: '1px solid var(--border-color)'
+                }}
+            >
                 Update
             </button>
         </div>

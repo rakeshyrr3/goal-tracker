@@ -19,6 +19,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   goals         Goal[]
   expenses      Expense[]
+  todos         Todo[]
 }
 
 model Goal {
@@ -44,4 +45,16 @@ model Expense {
   date          DateTime  @default(now())
   userId        String
   user          User      @relation(fields: [userId], references: [id])
+}
+
+model Todo {
+  id            String    @id @default(cuid())
+  text          String
+  completed     Boolean   @default(false)
+  theme         String?
+  date          String?
+  time          String?
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  createdAt     DateTime  @default(now())
 }
