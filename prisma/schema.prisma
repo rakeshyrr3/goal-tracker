@@ -20,6 +20,7 @@ model User {
   goals         Goal[]
   expenses      Expense[]
   todos         Todo[]
+  pushToken     String?
 }
 
 model Goal {

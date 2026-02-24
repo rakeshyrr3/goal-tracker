@@ -87,11 +87,30 @@ export default function ManagerDashboard() {
         router.push('/manager/login');
     };
 
-    const handleSendNotification = () => {
+    const handleSendNotification = async () => {
         const title = (document.getElementById('notif-title') as HTMLInputElement)?.value;
-        if (!title) return alert("Please enter a title");
-        alert(`Notification Blast: "${title}" sent to all active devices! 🚀`);
-        setNotificationsSent(prev => prev + 1);
+        const message = (document.getElementById('notif-msg') as HTMLTextAreaElement)?.value;
+
+        if (!title || !message) return alert("Please enter both title and message");
+
+        try {
+            const res = await fetch('/api/admin/broadcast', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, message })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert(`Broadcast Success: ${data.message}`);
+                setNotificationsSent(prev => prev + 1);
+            } else {
+                alert(`Broadcast Failed: ${data.error}`);
+            }
+        } catch (err) {
+            console.error("Failed to send broadcast:", err);
+            alert("Something went wrong while sending notification.");
+        }
     };
 
     const handleAddUser = async (e: any) => {

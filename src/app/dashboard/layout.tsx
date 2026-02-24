@@ -27,8 +27,11 @@ import {
     Youtube,
     ExternalLink,
     ChevronRight,
-    Award
+    Award,
+    Bell
 } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
+import { PushNotifications } from "@capacitor/push-notifications";
 
 export default function DashboardLayout({
     children,
@@ -77,6 +80,53 @@ export default function DashboardLayout({
         return () => {
             document.body.removeChild(script);
         };
+    }, []);
+
+    // Push Notifications Setup
+    useEffect(() => {
+        if (Capacitor.isNativePlatform()) {
+            const registerPush = async () => {
+                let permStatus = await PushNotifications.checkPermissions();
+
+                if (permStatus.receive === 'prompt') {
+                    permStatus = await PushNotifications.requestPermissions();
+                }
+
+                if (permStatus.receive !== 'granted') {
+                    console.log('User denied permissions!');
+                    return;
+                }
+
+                await PushNotifications.register();
+
+                // On success, we should be able to receive notifications
+                await PushNotifications.addListener('registration', async (token) => {
+                    console.log('Push registration success, token: ' + token.value);
+                    const userId = localStorage.getItem('user_id');
+                    if (userId) {
+                        await fetch('/api/auth/push-token', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userId, token: token.value })
+                        });
+                    }
+                });
+
+                await PushNotifications.addListener('registrationError', (error) => {
+                    console.error('Error on registration: ' + JSON.stringify(error));
+                });
+
+                await PushNotifications.addListener('pushNotificationReceived', (notification) => {
+                    console.log('Push received: ' + JSON.stringify(notification));
+                });
+
+                await PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
+                    console.log('Push action performed: ' + JSON.stringify(action));
+                });
+            };
+
+            registerPush();
+        }
     }, []);
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
