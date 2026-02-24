@@ -12,7 +12,8 @@ import {
     Trash2,
     Edit2,
     Calendar,
-    ChevronDown
+    ChevronDown,
+    Download
 } from "lucide-react";
 import {
     format,
@@ -25,6 +26,8 @@ import {
     endOfYear,
     parseISO
 } from "date-fns";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 
 const INITIAL_EXPENSES = [
     { id: "1", date: "2024-10-22", desc: "Vercel Pro Subscription", cat: "Tools", amount: 2000 },
@@ -105,10 +108,29 @@ export default function ExpensesPage() {
         }
     };
 
-    const handleExportPDF = () => {
-        const printContent = document.getElementById('expense-report');
-        if (printContent) {
-            window.print();
+    const handleExportPDF = async () => {
+        const element = document.getElementById('expense-report');
+        if (!element) return;
+
+        try {
+            const canvas = await html2canvas(element, {
+                backgroundColor: '#0c0c0e',
+                scale: 2,
+                logging: false,
+                useCORS: true
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`GoalTracker_Report_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+        } catch (error) {
+            console.error("PDF generation failed:", error);
+            alert("Failed to generate PDF. Please try again.");
         }
     };
 
@@ -134,12 +156,12 @@ export default function ExpensesPage() {
             {/* Header Section */}
             <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '12px' }}>
                 <div>
-                    <h2 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Expense Analysis</h2>
-                    <p style={{ color: 'var(--text-secondary)' }}>Detailed breakdown of your financial flow.</p>
+                    <h2 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Spend Analysis</h2>
+                    <p style={{ color: 'var(--text-secondary)' }}>Track and optimize your daily expenses.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', width: '100%', maxWidth: 'fit-content' }}>
                     <button onClick={() => setIsAddModalOpen(true)} className="btn-primary" style={{ padding: '12px 24px', borderRadius: '14px', whiteSpace: 'nowrap' }}>
-                        <Plus size={20} /> Add Expense
+                        <Plus size={20} /> Add Spend
                     </button>
                     <button
                         onClick={handleExportPDF}
@@ -156,7 +178,7 @@ export default function ExpensesPage() {
                             fontWeight: 700,
                             cursor: 'pointer'
                         }}>
-                        <FileText size={20} /> Export Report
+                        <FileText size={20} /> Export PDF
                     </button>
                 </div>
             </div>
@@ -244,18 +266,18 @@ export default function ExpensesPage() {
             </div>
 
             {/* Main Content / Report Section */}
-            <div id="expense-report" className="card" style={{ padding: '0', overflow: 'hidden' }}>
-                <div className="only-print" style={{ padding: '40px 40px 20px', display: 'none' }}>
-                    <h1 style={{ fontSize: '2rem', marginBottom: '8px' }}>Expense Report</h1>
-                    <p style={{ color: '#666' }}>Generated on {format(new Date(), 'PPP')}</p>
-                    <div style={{ marginTop: '24px', display: 'flex', gap: '40px' }}>
-                        <div>
-                            <span style={{ fontSize: '0.8rem', color: '#888', textTransform: 'uppercase' }}>Filter Range</span>
-                            <p style={{ fontWeight: 'bold' }}>{dateFilter}</p>
+            <div id="expense-report" className="card" style={{ padding: '24px', backgroundColor: '#0c0c0e', border: 'none' }}>
+                <div style={{ padding: '0 0 24px', borderBottom: '1px solid rgba(255,255,255,0.05)', marginBottom: '24px' }}>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '4px' }}>Expense Summary Report</h1>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Generated on {format(new Date(), 'PPP')}</p>
+                    <div style={{ marginTop: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                        <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px' }}>
+                            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Period</span>
+                            <p style={{ fontWeight: 700, marginTop: '4px' }}>{dateFilter}</p>
                         </div>
-                        <div>
-                            <span style={{ fontSize: '0.8rem', color: '#888', textTransform: 'uppercase' }}>Total Amount</span>
-                            <p style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>₹{totalSpending.toLocaleString()}</p>
+                        <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px' }}>
+                            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Total Spent</span>
+                            <p style={{ fontWeight: 800, marginTop: '4px', fontSize: '1.25rem', color: 'var(--accent-secondary)' }}>₹{totalSpending.toLocaleString()}</p>
                         </div>
                     </div>
                 </div>
@@ -263,47 +285,28 @@ export default function ExpensesPage() {
                 <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
-                            <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border-color)', backgroundColor: 'rgba(255,255,255,0.02)' }}>
-                                <th style={{ padding: '20px 24px', fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Date</th>
-                                <th style={{ padding: '20px 24px', fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Description</th>
-                                <th style={{ padding: '20px 24px', fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Tag</th>
-                                <th style={{ padding: '20px 24px', fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Amount</th>
-                                <th className="no-print" style={{ padding: '20px 24px', width: '50px' }}></th>
+                            <tr style={{ textAlign: 'left', borderBottom: '1px solid var(--border-color)', backgroundColor: 'rgba(255,255,255,0.01)' }}>
+                                <th style={{ padding: '16px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Date</th>
+                                <th style={{ padding: '16px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Description</th>
+                                <th style={{ padding: '16px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Tag</th>
+                                <th style={{ padding: '16px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', textAlign: 'right' }}>Amount</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredExpenses.map((exp) => (
-                                <tr key={exp.id} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.2s' }} className="hover:bg-glass">
-                                    <td style={{ padding: '20px 24px', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>{exp.date}</td>
-                                    <td style={{ padding: '20px 24px', fontSize: '0.9375rem', fontWeight: 600 }}>{exp.desc}</td>
-                                    <td style={{ padding: '20px 24px' }}>
-                                        <span style={{ fontSize: '0.7rem', padding: '4px 10px', borderRadius: '20px', backgroundColor: 'rgba(255,255,255,0.05)', fontWeight: 700 }}>{exp.cat}</span>
+                                <tr key={exp.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                                    <td style={{ padding: '16px', fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>{exp.date}</td>
+                                    <td style={{ padding: '16px', fontSize: '0.875rem', fontWeight: 600 }}>{exp.desc}</td>
+                                    <td style={{ padding: '16px' }}>
+                                        <span style={{ fontSize: '0.65rem', padding: '4px 8px', borderRadius: '20px', backgroundColor: 'rgba(255,255,255,0.05)', fontWeight: 700 }}>{exp.cat}</span>
                                     </td>
-                                    <td style={{ padding: '20px 24px', fontSize: '1rem', fontWeight: 800, color: 'var(--accent-secondary)' }}>₹{exp.amount.toLocaleString()}</td>
-                                    <td className="no-print" style={{ padding: '20px 24px', textAlign: 'right' }}>
-                                        <div style={{ position: 'relative' }}>
-                                            <button
-                                                onClick={() => setActiveMenu(activeMenu === exp.id ? null : exp.id)}
-                                                style={{ padding: '8px', border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
-                                            >
-                                                <MoreVertical size={18} />
-                                            </button>
-                                            {activeMenu === exp.id && (
-                                                <div style={{ position: 'absolute', top: '100%', right: 0, zIndex: 50, backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: '10px', padding: '6px', boxShadow: '0 10px 15px rgba(0,0,0,0.4)', width: '120px' }}>
-                                                    <button onClick={() => handleDeleteExpense(exp.id)} style={{ width: '100%', padding: '10px', display: 'flex', alignItems: 'center', gap: '8px', color: '#ef4444', fontSize: '0.8125rem', border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left' }}>
-                                                        <Trash2 size={14} /> Remove
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </td>
+                                    <td style={{ padding: '16px', fontSize: '0.925rem', fontWeight: 800, textAlign: 'right' }}>₹{exp.amount.toLocaleString()}</td>
                                 </tr>
                             ))}
                             {filteredExpenses.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                                        <FileText size={40} style={{ margin: '0 auto 16px', display: 'block', opacity: 0.3 }} />
-                                        No transactions found for the selected filter.
+                                    <td colSpan={4} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                        No transactions found.
                                     </td>
                                 </tr>
                             )}
@@ -407,4 +410,3 @@ function SummaryCard({ title, value, color }: any) {
         </div>
     );
 }
-

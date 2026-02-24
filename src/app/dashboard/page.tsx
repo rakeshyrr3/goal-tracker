@@ -127,9 +127,10 @@ export default function DashboardPage() {
                 <StatCard
                     title="Today's Spend"
                     value={`₹${todaySpent.toLocaleString()}`}
-                    icon={<Wallet color="var(--accent-primary)" />}
+                    icon={<Wallet color="#8b5cf6" />}
                     trend="+12% vs avg"
                     trendUp={todaySpent > (monthSpent / 30)}
+                    color="#8b5cf6"
                 />
                 <StatCard
                     title="Goal Progress"
@@ -137,20 +138,23 @@ export default function DashboardPage() {
                     icon={<TrendingUp color="#d946ef" />}
                     trend="Improving"
                     trendUp={true}
+                    color="#d946ef"
                 />
                 <StatCard
                     title="Active Goals"
                     value={activeGoalsCount.toString()}
-                    icon={<Target color="var(--warning)" />}
+                    icon={<Target color="#f59e0b" />}
                     trend={`${activeGoalsCount} live`}
                     trendUp={true}
+                    color="#f59e0b"
                 />
                 <StatCard
                     title="Month to Date"
                     value={`₹${monthSpent.toLocaleString()}`}
-                    icon={<DollarSign color="var(--success)" />}
+                    icon={<DollarSign color="#10b981" />}
                     trend="On track"
                     trendUp={true}
+                    color="#10b981"
                 />
             </div>
 
@@ -267,9 +271,15 @@ export default function DashboardPage() {
     );
 }
 
-function StatCard({ title, value, icon, trend, trendUp }: any) {
+function StatCard({ title, value, icon, trend, trendUp, color }: any) {
     return (
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="card" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
+            borderLeft: `4px solid ${color}`,
+            background: 'rgba(255,255,255,0.02)'
+        }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{
                     width: '40px',
@@ -298,7 +308,7 @@ function StatCard({ title, value, icon, trend, trendUp }: any) {
             </div>
             <div>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '4px' }}>{title}</p>
-                <h4 style={{ fontSize: '1.5rem', fontWeight: 700 }}>{value}</h4>
+                <h4 style={{ fontSize: '1.50rem', fontWeight: 700 }}>{value}</h4>
             </div>
         </div>
     );

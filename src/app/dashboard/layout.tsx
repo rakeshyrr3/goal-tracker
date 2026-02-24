@@ -19,7 +19,15 @@ import {
     HelpCircle,
     Mail,
     CreditCard as PlanIcon,
-    Clock
+    Clock,
+    Star,
+    Trash2,
+    Facebook,
+    Instagram,
+    Youtube,
+    ExternalLink,
+    ChevronRight,
+    Award
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -31,9 +39,10 @@ export default function DashboardLayout({
     const router = useRouter();
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isFAQOpen, setIsFAQOpen] = useState(false);
+    const [isTermsOpen, setIsTermsOpen] = useState(false);
     const [userName, setUserName] = useState("Rakesh");
     const [bio, setBio] = useState("Entrepreneur & Product Designer. Passionate about productivity and scaling startups.");
-
     const [profileImage, setProfileImage] = useState<string | null>(null);
 
     // Persistence for Profile
@@ -81,17 +90,31 @@ export default function DashboardLayout({
         }
     };
 
-    const handleManageSubscription = () => {
-        alert("You are currently using the Goal Tracker Pro version for free! Enjoy all premium features as our early adopter. Thank you for being with us! \ud83d\ude80");
+    const handleRestart = async () => {
+        if (confirm("Are you sure? This will permanently delete all your goals and expenses from both your phone and our database.")) {
+            try {
+                const userId = localStorage.getItem('user_id');
+                if (userId) {
+                    await fetch('/api/auth/reset', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId })
+                    });
+                }
+                localStorage.removeItem('user_goals');
+                localStorage.removeItem('user_expenses');
+                localStorage.removeItem('user_todos');
+                localStorage.removeItem('last_sync_time');
+                window.location.reload();
+            } catch (error) {
+                console.error("Failed to reset data:", error);
+                alert("Something went wrong while resetting data. Please try again.");
+            }
+        }
     };
 
-    const handleRestart = () => {
-        if (confirm("Are you sure? This will permanently delete all your goals and expenses to start fresh from today.")) {
-            localStorage.removeItem('user_goals');
-            localStorage.removeItem('user_expenses');
-            localStorage.removeItem('user_todos');
-            window.location.reload();
-        }
+    const handleManageSubscription = () => {
+        alert("Managing subscription via Razorpay...");
     };
 
     const handleShare = () => {
@@ -179,51 +202,126 @@ export default function DashboardLayout({
 
                 {/* Hamburger Menu Sidebar */}
                 {isMenuOpen && (
-                    <div className="modal-overlay" onClick={() => setIsMenuOpen(false)} style={{ justifyContent: 'flex-start', alignItems: 'stretch' }}>
+                    <div className="modal-overlay" onClick={() => setIsMenuOpen(false)} style={{ justifyContent: 'flex-start', alignItems: 'stretch', padding: 0 }}>
                         <div
-                            className="menu-drawer"
+                            className="menu-drawer no-scrollbar"
                             onClick={(e) => e.stopPropagation()}
                             style={{
-                                width: '280px',
-                                backgroundColor: '#0a0a0a',
-                                borderRight: '1px solid var(--border-color)',
+                                width: '310px',
+                                backgroundColor: '#0f0f13',
+                                borderRight: '1px solid rgba(255,255,255,0.05)',
                                 height: '100%',
                                 padding: '24px',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                gap: '32px',
-                                animation: 'slideIn 0.3s ease-out'
+                                gap: '20px',
+                                animation: 'slideIn 0.3s ease-out',
+                                overflowY: 'auto'
                             }}
                         >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Settings</h3>
-                                <button onClick={() => setIsMenuOpen(false)} style={{ color: 'var(--text-muted)' }}><X size={24} /></button>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-secondary))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Target color="white" size={20} />
+                                    </div>
+                                    <h3 style={{ fontSize: '1.1rem', fontWeight: 800 }}>Goal Tracker</h3>
+                                </div>
+                                <button onClick={() => setIsMenuOpen(false)} style={{ color: 'var(--text-muted)' }}><X size={20} /></button>
                             </div>
 
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                <MenuLink icon={<User size={18} />} label="Profile" onClick={() => { setIsMenuOpen(false); setIsProfileModalOpen(true); }} />
-                                <MenuLink icon={<PlanIcon size={18} />} label="Plan Details" onClick={() => { setIsMenuOpen(false); handleManageSubscription(); }} />
-                                <MenuLink icon={<Share2 size={18} />} label="Share Option" onClick={() => { setIsMenuOpen(false); handleShare(); }} />
-                                <MenuLink icon={<HelpCircle size={18} />} label="FAQs" onClick={() => { setIsMenuOpen(false); alert("FAQs coming soon!"); }} />
-                                <MenuLink icon={<Mail size={18} />} label="Contact Us" onClick={() => { setIsMenuOpen(false); alert("Contact: support@goaltracker.com"); }} />
+                            {/* Section 1: Core Actions */}
+                            <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '16px', padding: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <MenuRow icon={<PlanIcon size={18} color="var(--accent-primary)" />} label="Plan Details" onClick={() => alert("You are on Pro Plan!")} />
+                                <MenuRow icon={<Clock size={18} color="#ef4444" />} label="Restart From Today" onClick={handleRestart} color="#ef4444" />
+                            </div>
 
-                                <div style={{ height: '1px', backgroundColor: 'var(--border-color)', margin: '16px 0' }} />
+                            {/* Section 2: Support */}
+                            <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '16px', padding: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <MenuRow icon={<HelpCircle size={18} color="#8b5cf6" />} label="FAQS" onClick={() => setIsFAQOpen(true)} />
+                                <MenuRow icon={<Star size={18} color="#f59e0b" />} label="Rate us" onClick={() => alert("Redirecting to playstore...")} />
+                                <MenuRow icon={<Share2 size={18} color="#10b981" />} label="App Share" onClick={handleShare} />
+                            </div>
 
-                                <MenuLink
-                                    icon={<Clock size={18} />}
-                                    label="Restart From Today"
-                                    onClick={() => { setIsMenuOpen(false); handleRestart(); }}
-                                    color="#ef4444"
-                                />
-                                <MenuLink
-                                    icon={<LogOut size={18} />}
-                                    label="Logout"
-                                    onClick={() => {
-                                        localStorage.removeItem('is_logged_in');
-                                        router.push('/auth/login');
-                                    }}
-                                    color="#ef4444"
-                                />
+                            {/* Section 2: Legal */}
+                            <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '16px', padding: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <MenuRow label="Terms & Conditions" onClick={() => setIsTermsOpen(true)} />
+                                <MenuRow label="Privacy Policy" onClick={() => setIsTermsOpen(true)} />
+                            </div>
+
+                            {/* Section 3: Socials */}
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                                <SocialCard icon={<Facebook size={20} fill="#1877F2" color="#1877F2" />} label="Facebook" color="#1877F2" />
+                                <SocialCard icon={<Instagram size={20} color="#E4405F" />} label="Instagram" color="#E4405F" />
+                                <SocialCard icon={<Youtube size={20} fill="#FF0000" color="#FF0000" />} label="YouTube" color="#FF0000" />
+                            </div>
+
+                            {/* Section 4: Critical Actions */}
+                            <div style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '16px', padding: '8px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <MenuRow icon={<Trash2 size={18} color="#ef4444" />} label="Delete My Account" onClick={() => alert("Contact support to delete account.")} color="#ef4444" />
+                                <MenuRow icon={<LogOut size={18} color="#ef4444" />} label="Log out" onClick={() => {
+                                    localStorage.clear();
+                                    router.push('/auth/login');
+                                }} color="#ef4444" />
+                            </div>
+
+                            {/* Coming Soon Feature */}
+                            <div style={{
+                                padding: '20px',
+                                borderRadius: '20px',
+                                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(217, 70, 239, 0.1))',
+                                border: '1px solid rgba(139, 92, 246, 0.2)',
+                                textAlign: 'center',
+                                marginTop: '10px'
+                            }}>
+                                <h4 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '8px' }}>Create Your Success Badge in 1 Minute</h4>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>Coming soon for our top goal achievers!</p>
+                                <div style={{ display: 'inline-flex', padding: '6px 12px', borderRadius: '20px', backgroundColor: 'var(--accent-primary)', fontSize: '0.7rem', fontWeight: 700 }}>EXCLUSVE</div>
+                            </div>
+
+                            <div style={{ textAlign: 'center', marginTop: 'auto', paddingBottom: '10px' }}>
+                                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>App Version 1.0.2+42</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* FAQ Modal */}
+                {isFAQOpen && (
+                    <div className="modal-overlay" onClick={() => setIsFAQOpen(false)}>
+                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Frequently Asked Questions</h3>
+                                <button onClick={() => setIsFAQOpen(false)}><X size={20} /></button>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+                                <div>
+                                    <p style={{ fontWeight: 700, color: 'white', marginBottom: '4px' }}>How to sync my data?</p>
+                                    <p>Your data syncs automatically every time you log in or add an expense/goal.</p>
+                                </div>
+                                <div>
+                                    <p style={{ fontWeight: 700, color: 'white', marginBottom: '4px' }}>Is the app free to use?</p>
+                                    <p>We are currently in a free-to-use early adopter phase. Enjoy all Pro features!</p>
+                                </div>
+                                <div>
+                                    <p style={{ fontWeight: 700, color: 'white', marginBottom: '4px' }}>Can I export my reports?</p>
+                                    <p>Yes, go to the Spend tab and click "Export PDF" to download your monthly report.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Terms Modal */}
+                {isTermsOpen && (
+                    <div className="modal-overlay" onClick={() => setIsTermsOpen(false)}>
+                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Terms & Privacy</h3>
+                                <button onClick={() => setIsTermsOpen(false)}><X size={20} /></button>
+                            </div>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', lineHeight: '1.6' }}>
+                                <p>By using Goal Tracker, you agree to store your data locally and on our secure cloud. We do not sell your personal spending data to third parties. Your privacy is our priority.</p>
+                                <p style={{ marginTop: '12px' }}>Full policy can be found at: goaltracker.com/legal</p>
                             </div>
                         </div>
                     </div>
@@ -365,31 +463,55 @@ export default function DashboardLayout({
     );
 }
 
-function MenuLink({ icon, label, onClick, color = 'white' }: any) {
+function MenuRow({ icon, label, onClick, color = 'white' }: any) {
     return (
         <button
             onClick={onClick}
             style={{
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'space-between',
                 gap: '12px',
-                padding: '12px',
+                padding: '14px 12px',
                 borderRadius: '12px',
                 border: 'none',
                 background: 'none',
                 color: color,
-                fontSize: '0.9375rem',
+                fontSize: '0.85rem',
                 fontWeight: 600,
                 cursor: 'pointer',
                 textAlign: 'left',
                 width: '100%',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                borderBottom: '1px solid rgba(255,255,255,0.03)'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'}
             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
         >
-            {icon}
-            {label}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {icon}
+                <span style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</span>
+            </div>
+            <ChevronRight size={14} color="rgba(255,255,255,0.3)" />
         </button>
     );
+}
+
+function SocialCard({ icon, label, color }: any) {
+    return (
+        <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: 'rgba(255,255,255,0.02)',
+            padding: '16px 10px',
+            borderRadius: '16px',
+            border: '1px solid rgba(255,255,255,0.05)',
+            cursor: 'pointer'
+        }}>
+            {icon}
+            <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-muted)' }}>{label}</span>
+        </div>
+    )
 }
