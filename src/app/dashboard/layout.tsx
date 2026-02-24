@@ -264,18 +264,23 @@ export default function DashboardLayout({
                                 }} color="#ef4444" />
                             </div>
 
-                            {/* Coming Soon Feature */}
+                            {/* Productivity Quote */}
                             <div style={{
-                                padding: '20px',
-                                borderRadius: '20px',
-                                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(217, 70, 239, 0.1))',
-                                border: '1px solid rgba(139, 92, 246, 0.2)',
+                                padding: '24px',
+                                borderRadius: '24px',
+                                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(217, 70, 239, 0.05))',
+                                border: '1px solid rgba(255, 255, 255, 0.05)',
                                 textAlign: 'center',
-                                marginTop: '10px'
+                                marginTop: '10px',
+                                position: 'relative'
                             }}>
-                                <h4 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '8px' }}>Create Your Success Badge in 1 Minute</h4>
-                                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '12px' }}>Coming soon for our top goal achievers!</p>
-                                <div style={{ display: 'inline-flex', padding: '6px 12px', borderRadius: '20px', backgroundColor: 'var(--accent-primary)', fontSize: '0.7rem', fontWeight: 700 }}>EXCLUSVE</div>
+                                <p style={{ fontSize: '1.1rem', fontWeight: 800, lineHeight: '1.4', color: 'white', marginBottom: '10px', fontStyle: 'italic' }}>
+                                    "The secret of getting ahead is getting started."
+                                </p>
+                                <div style={{ height: '2px', width: '20px', backgroundColor: 'var(--accent-primary)', margin: '0 auto 8px', borderRadius: '2px' }} />
+                                <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+                                    Stay Focused • Stay Productive
+                                </p>
                             </div>
 
                             <div style={{ textAlign: 'center', marginTop: 'auto', paddingBottom: '10px' }}>
