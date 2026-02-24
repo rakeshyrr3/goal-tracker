@@ -8,13 +8,18 @@ import {
     X,
     User,
     Shield,
-    CreditCard,
     Camera,
     LayoutDashboard,
     Target,
     Wallet,
-    BarChart3,
-    CheckSquare
+    CheckSquare,
+    Menu,
+    LogOut,
+    Share2,
+    HelpCircle,
+    Mail,
+    CreditCard as PlanIcon,
+    Clock
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -25,6 +30,7 @@ export default function DashboardLayout({
     const pathname = usePathname();
     const router = useRouter();
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [userName, setUserName] = useState("Rakesh");
     const [bio, setBio] = useState("Entrepreneur & Product Designer. Passionate about productivity and scaling startups.");
 
@@ -79,6 +85,27 @@ export default function DashboardLayout({
         alert("You are currently using the Goal Tracker Pro version for free! Enjoy all premium features as our early adopter. Thank you for being with us! \ud83d\ude80");
     };
 
+    const handleRestart = () => {
+        if (confirm("Are you sure? This will permanently delete all your goals and expenses to start fresh from today.")) {
+            localStorage.removeItem('user_goals');
+            localStorage.removeItem('user_expenses');
+            localStorage.removeItem('user_todos');
+            window.location.reload();
+        }
+    };
+
+    const handleShare = () => {
+        if (navigator.share) {
+            navigator.share({
+                title: 'Goal Tracker',
+                text: 'Check out this awesome productivity app!',
+                url: window.location.origin,
+            }).catch(console.error);
+        } else {
+            alert("Share this link: " + window.location.origin);
+        }
+    };
+
     const navItems = [
         { name: "Dash", path: "/dashboard", icon: LayoutDashboard },
         { name: "Goals", path: "/dashboard/goals", icon: Target },
@@ -103,18 +130,28 @@ export default function DashboardLayout({
                             {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}
                         </p>
                     </div>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                        <div style={{
-                            textAlign: 'right',
-                            display: 'none' // Hide plan text on very small headers
-                        }} className="hide-on-mobile">
-                            <p style={{ fontSize: '0.875rem', fontWeight: 600 }}>Pro Plan</p>
-                        </div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <button
+                            onClick={() => setIsMenuOpen(true)}
+                            style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '12px',
+                                backgroundColor: 'var(--glass-bg)',
+                                border: '1px solid var(--border-color)',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white'
+                            }}>
+                            <Menu size={20} />
+                        </button>
                         <button
                             onClick={() => setIsProfileModalOpen(true)}
                             style={{
-                                width: '48px', // Increased size for clarity
-                                height: '48px',
+                                width: '40px',
+                                height: '40px',
                                 borderRadius: '50%',
                                 backgroundColor: 'var(--glass-bg)',
                                 border: '2px solid var(--accent-primary)',
@@ -132,7 +169,7 @@ export default function DashboardLayout({
                                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                 />
                             ) : (
-                                <span style={{ fontWeight: 800, color: 'white' }}>{userName.substring(0, 2).toUpperCase()}</span>
+                                <span style={{ fontWeight: 800, color: 'white', fontSize: '0.75rem' }}>{userName.substring(0, 2).toUpperCase()}</span>
                             )}
                         </button>
                     </div>
@@ -140,22 +177,57 @@ export default function DashboardLayout({
 
                 {children}
 
-                {/* Mobile Bottom Navigation */}
-                <nav className="mobile-nav">
-                    {navItems.map((item) => {
-                        const isActive = pathname === item.path;
-                        return (
-                            <Link
-                                key={item.path}
-                                href={item.path}
-                                className={`mobile-nav-item ${isActive ? 'active' : ''}`}
-                            >
-                                <item.icon size={24} />
-                                <span>{item.name}</span>
-                            </Link>
-                        );
-                    })}
-                </nav>
+                {/* Hamburger Menu Sidebar */}
+                {isMenuOpen && (
+                    <div className="modal-overlay" onClick={() => setIsMenuOpen(false)} style={{ justifyContent: 'flex-start', alignItems: 'stretch' }}>
+                        <div
+                            className="menu-drawer"
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                                width: '280px',
+                                backgroundColor: '#0a0a0a',
+                                borderRight: '1px solid var(--border-color)',
+                                height: '100%',
+                                padding: '24px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '32px',
+                                animation: 'slideIn 0.3s ease-out'
+                            }}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Settings</h3>
+                                <button onClick={() => setIsMenuOpen(false)} style={{ color: 'var(--text-muted)' }}><X size={24} /></button>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <MenuLink icon={<User size={18} />} label="Profile" onClick={() => { setIsMenuOpen(false); setIsProfileModalOpen(true); }} />
+                                <MenuLink icon={<PlanIcon size={18} />} label="Plan Details" onClick={() => { setIsMenuOpen(false); handleManageSubscription(); }} />
+                                <MenuLink icon={<Share2 size={18} />} label="Share Option" onClick={() => { setIsMenuOpen(false); handleShare(); }} />
+                                <MenuLink icon={<HelpCircle size={18} />} label="FAQs" onClick={() => { setIsMenuOpen(false); alert("FAQs coming soon!"); }} />
+                                <MenuLink icon={<Mail size={18} />} label="Contact Us" onClick={() => { setIsMenuOpen(false); alert("Contact: support@goaltracker.com"); }} />
+
+                                <div style={{ height: '1px', backgroundColor: 'var(--border-color)', margin: '16px 0' }} />
+
+                                <MenuLink
+                                    icon={<Clock size={18} />}
+                                    label="Restart From Today"
+                                    onClick={() => { setIsMenuOpen(false); handleRestart(); }}
+                                    color="#ef4444"
+                                />
+                                <MenuLink
+                                    icon={<LogOut size={18} />}
+                                    label="Logout"
+                                    onClick={() => {
+                                        localStorage.removeItem('is_logged_in');
+                                        router.push('/auth/login');
+                                    }}
+                                    color="#ef4444"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Profile Modal */}
                 {isProfileModalOpen && (
@@ -271,7 +343,53 @@ export default function DashboardLayout({
                         </div>
                     </div>
                 )}
+
+                {/* Mobile Bottom Navigation */}
+                <nav className="mobile-nav">
+                    {navItems.map((item) => {
+                        const isActive = pathname === item.path;
+                        return (
+                            <Link
+                                key={item.path}
+                                href={item.path}
+                                className={`mobile-nav-item ${isActive ? 'active' : ''}`}
+                            >
+                                <item.icon size={24} />
+                                <span>{item.name}</span>
+                            </Link>
+                        );
+                    })}
+                </nav>
             </main>
         </div>
+    );
+}
+
+function MenuLink({ icon, label, onClick, color = 'white' }: any) {
+    return (
+        <button
+            onClick={onClick}
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px',
+                borderRadius: '12px',
+                border: 'none',
+                background: 'none',
+                color: color,
+                fontSize: '0.9375rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                textAlign: 'left',
+                width: '100%',
+                transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+        >
+            {icon}
+            {label}
+        </button>
     );
 }

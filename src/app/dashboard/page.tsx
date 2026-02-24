@@ -112,39 +112,17 @@ export default function DashboardPage() {
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            {/* Header with Restart */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                    <h2 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Productivity Overview</h2>
-                    <p style={{ color: 'var(--text-secondary)' }}>Welcome back! Here's how you're doing today.</p>
-                </div>
-                <button
-                    onClick={handleRestart}
-                    style={{
-                        padding: '12px 24px',
-                        borderRadius: '16px',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        color: '#ef4444',
-                        border: '1px solid rgba(239, 68, 68, 0.2)',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'}
-                >
-                    <Clock size={18} /> Restart from Today
-                </button>
+            {/* Header */}
+            <div>
+                <h2 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Productivity Overview</h2>
+                <p style={{ color: 'var(--text-secondary)' }}>Welcome back! Here's how you're doing today.</p>
             </div>
 
-            {/* Stats Grid - 5 Cards */}
+            {/* Stats Grid - 2x2 */}
             <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '24px'
+                gridTemplateColumns: '1fr 1fr',
+                gap: '16px'
             }}>
                 <StatCard
                     title="Today's Spend"
@@ -154,17 +132,10 @@ export default function DashboardPage() {
                     trendUp={todaySpent > (monthSpent / 30)}
                 />
                 <StatCard
-                    title="Yesterday's Spend"
-                    value={`₹${yesterdaySpent.toLocaleString()}`}
-                    icon={<CreditCard color="var(--accent-secondary)" />}
-                    trend="Check logs"
-                    trendUp={false}
-                />
-                <StatCard
-                    title="Month to Date"
-                    value={`₹${monthSpent.toLocaleString()}`}
-                    icon={<DollarSign color="var(--success)" />}
-                    trend="On track"
+                    title="Goal Progress"
+                    value={`${avgProgress}%`}
+                    icon={<TrendingUp color="#d946ef" />}
+                    trend="Improving"
                     trendUp={true}
                 />
                 <StatCard
@@ -175,10 +146,10 @@ export default function DashboardPage() {
                     trendUp={true}
                 />
                 <StatCard
-                    title="Goal Progress"
-                    value={`${avgProgress}%`}
-                    icon={<TrendingUp color="#d946ef" />}
-                    trend="Improving"
+                    title="Month to Date"
+                    value={`₹${monthSpent.toLocaleString()}`}
+                    icon={<DollarSign color="var(--success)" />}
+                    trend="On track"
                     trendUp={true}
                 />
             </div>

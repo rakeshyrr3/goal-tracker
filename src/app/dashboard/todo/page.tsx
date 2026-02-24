@@ -14,11 +14,11 @@ interface Todo {
 }
 
 const THEMES = [
-    { name: "Rainbow", bg: "linear-gradient(135deg, rgba(255,0,0,0.1), rgba(255,165,0,0.1), rgba(255,255,0,0.1), rgba(0,128,0,0.1), rgba(0,0,255,0.1), rgba(75,0,130,0.1), rgba(238,130,238,0.1))", border: "linear-gradient(135deg, red, orange, yellow, green, blue, indigo, violet)", text: "#fff" },
-    { name: "Modern Blue", bg: "rgba(59, 130, 246, 0.1)", border: "#3b82f6", text: "#fff" },
+    { name: "Deep Blue", bg: "rgba(59, 130, 246, 0.1)", border: "#3b82f6", text: "#fff" },
     { name: "Neon Purple", bg: "rgba(168, 85, 247, 0.1)", border: "#a855f7", text: "#fff" },
     { name: "Mint Fresh", bg: "rgba(34, 197, 94, 0.1)", border: "#22c55e", text: "#fff" },
     { name: "Sunset Gold", bg: "rgba(245, 158, 11, 0.1)", border: "#f59e0b", text: "#fff" },
+    { name: "Rose Pink", bg: "rgba(244, 63, 94, 0.1)", border: "#f43f5e", text: "#fff" },
 ];
 
 export default function TodoPage() {
@@ -83,8 +83,8 @@ export default function TodoPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', minHeight: '100vh' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
-                    <h2 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Rainbow To-Do Widgets</h2>
-                    <p style={{ color: 'var(--text-secondary)' }}>Personalize your tasks with vibrant rainbow themes.</p>
+                    <h2 style={{ fontSize: '1.75rem', fontWeight: 800 }}>Daily Tasks</h2>
+                    <p style={{ color: 'var(--text-secondary)' }}>Organize your day with simple, effective lists.</p>
                 </div>
             </div>
 
@@ -118,37 +118,38 @@ export default function TodoPage() {
             </div>
 
             {/* Input Section */}
-            <form onSubmit={addTodo} style={{ display: 'flex', gap: '12px' }}>
+            <form onSubmit={addTodo} style={{ display: 'flex', gap: '8px', width: '100%' }}>
                 <input
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     placeholder="Capture your next big goal..."
                     style={{
                         flex: 1,
-                        padding: '18px',
-                        borderRadius: '20px',
+                        padding: '16px',
+                        borderRadius: '16px',
                         backgroundColor: 'var(--card-bg)',
                         border: '1px solid var(--border-color)',
                         color: 'white',
-                        fontSize: '1rem',
+                        fontSize: '0.925rem',
                         outline: 'none',
-                        boxShadow: '0 4px 10px rgba(0,0,0,0.2)'
+                        minWidth: 0 // Prevent input from pushing out flex items
                     }}
                 />
                 <button
                     type="submit"
                     style={{
-                        padding: '0 32px',
-                        borderRadius: '20px',
+                        padding: '0 24px',
+                        borderRadius: '16px',
                         backgroundColor: 'var(--accent-primary)',
                         color: 'white',
                         border: 'none',
                         fontWeight: 700,
                         cursor: 'pointer',
-                        transition: 'transform 0.2s'
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-                    onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
                 >
                     <Plus size={24} />
                 </button>
@@ -171,33 +172,18 @@ export default function TodoPage() {
                                 padding: '24px',
                                 borderRadius: '28px',
                                 background: theme.bg,
-                                border: isRainbow ? 'none' : `1px solid ${theme.border}`,
-                                borderImage: isRainbow ? theme.border : 'none',
-                                borderImageSlice: isRainbow ? 1 : 'none',
+                                border: `1px solid ${theme.border}`,
                                 position: 'relative',
                                 display: 'flex',
                                 flexDirection: 'column',
                                 gap: '20px',
                                 textDecoration: todo.completed ? 'line-through' : 'none',
                                 opacity: todo.completed ? 0.6 : 1,
-                                boxShadow: '0 10px 30px -10px rgba(0,0,0,0.5)',
+                                boxShadow: '0 10px 30px -10px rgba(0,0,0,0.3)',
                                 transition: 'all 0.3s ease',
                                 transform: todo.completed ? 'scale(0.98)' : 'scale(1)'
                             }}
                         >
-                            {isRainbow && (
-                                <div style={{
-                                    position: 'absolute',
-                                    inset: 0,
-                                    borderRadius: '28px',
-                                    padding: '2px',
-                                    background: theme.border,
-                                    WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                                    WebkitMaskComposite: 'xor',
-                                    maskComposite: 'exclude',
-                                    pointerEvents: 'none'
-                                }} />
-                            )}
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <button
@@ -256,7 +242,7 @@ export default function TodoPage() {
                         <Layout size={40} strokeWidth={1.5} />
                     </div>
                     <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'white' }}>Empty Canvas</h3>
-                    <p style={{ maxWidth: '300px' }}>Pick a rainbow theme and start capturing your tasks. Your future self will thank you!</p>
+                    <p style={{ maxWidth: '300px' }}>Pick a theme and start capturing your tasks. Your future self will thank you!</p>
                 </div>
             )}
         </div>

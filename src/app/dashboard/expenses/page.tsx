@@ -112,6 +112,20 @@ export default function ExpensesPage() {
         }
     };
 
+    const totalSpentToday = expenses.filter(e => {
+        const d = parseISO(e.date);
+        return d >= startOfDay(new Date()) && d <= endOfDay(new Date());
+    }).reduce((acc, curr) => acc + curr.amount, 0);
+
+    const expenseByCategory = expenses.reduce((acc: any, curr: any) => {
+        acc[curr.cat] = (acc[curr.cat] || 0) + curr.amount;
+        return acc;
+    }, {});
+
+    const topCategory = Object.keys(expenseByCategory).length > 0
+        ? Object.keys(expenseByCategory).reduce((a, b) => expenseByCategory[a] > expenseByCategory[b] ? a : b)
+        : "None";
+
     const totalSpending = filteredExpenses.reduce((acc, curr) => acc + curr.amount, 0);
     const totalAllTime = expenses.reduce((acc, curr) => acc + curr.amount, 0);
 
@@ -147,21 +161,30 @@ export default function ExpensesPage() {
                 </div>
             </div>
 
-            {/* Quick Stats */}
+            {/* Quick Stats - 2x2 */}
             <div className="no-print" style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '20px'
+                gridTemplateColumns: '1fr 1fr',
+                gap: '12px'
             }}>
-                <SummaryCard title="Period Spending" value={`₹${totalSpending.toLocaleString()}`} color="var(--accent-primary)" />
-                <SummaryCard title="Total Transactions" value={filteredExpenses.length.toString()} color="var(--accent-secondary)" />
-                <SummaryCard title="Lifetime Total" value={`₹${totalAllTime.toLocaleString()}`} color="var(--warning)" />
+                <SummaryCard title="Total Spend" value={`₹${totalAllTime.toLocaleString()}`} color="#8b5cf6" />
+                <SummaryCard title="Today Spend" value={`₹${totalSpentToday.toLocaleString()}`} color="#10b981" />
+                <SummaryCard title="Top Category" value={topCategory} color="#d946ef" />
+                <SummaryCard title="Transactions" value={filteredExpenses.length.toString()} color="#f59e0b" />
             </div>
 
             {/* Filters Section */}
             <div className="no-print card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '4px' }}>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{
+                        display: 'flex',
+                        backgroundColor: 'rgba(255,255,255,0.03)',
+                        borderRadius: '12px',
+                        padding: '4px',
+                        width: '100%',
+                        overflowX: 'auto',
+                        justifyContent: 'flex-start'
+                    }} className="no-scrollbar">
                         {["All", "Day", "Month", "Year", "Custom"].map((f) => (
                             <button
                                 key={f}
@@ -175,7 +198,8 @@ export default function ExpensesPage() {
                                     fontSize: '0.8125rem',
                                     fontWeight: 700,
                                     cursor: 'pointer',
-                                    transition: 'all 0.2s'
+                                    transition: 'all 0.2s',
+                                    flexShrink: 0
                                 }}
                             >
                                 {f}
@@ -330,6 +354,15 @@ export default function ExpensesPage() {
                                         style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid var(--border-color)', padding: '14px', borderRadius: '12px' }}
                                     >
                                         <option>Tools</option>
+                                        <option>Travel</option>
+                                        <option>Groceries</option>
+                                        <option>Online Shopping</option>
+                                        <option>Food</option>
+                                        <option>Movie</option>
+                                        <option>Makeover</option>
+                                        <option>Gadgets</option>
+                                        <option>Rent</option>
+                                        <option>Stationary</option>
                                         <option>Ads</option>
                                         <option>Business</option>
                                         <option>Marketing</option>
@@ -361,9 +394,16 @@ export default function ExpensesPage() {
 
 function SummaryCard({ title, value, color }: any) {
     return (
-        <div className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>{title}</p>
-            <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: color }}>{value}</h3>
+        <div className="card" style={{
+            padding: '20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            borderLeft: `3px solid ${color}`,
+            background: 'rgba(255,255,255,0.02)'
+        }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}>{title}</p>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>{value}</h3>
         </div>
     );
 }
